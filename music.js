@@ -68,7 +68,7 @@ var toTitleCase = function(str) {
 
 /* Initialization of stuff */
 var allLyrics = [];
-var allLyricsBadFr = [];
+var allLyricsBadTr = [];
 var allSound = [];
 var lyrics = function(){
     fs.readdir('./lyrics', function (err, files) {
@@ -90,16 +90,16 @@ var sounds = function(){
     });
 };
 sounds();
-var lyricsBadFr = function(){
-    fs.readdir('./badfr', function (err, files) {
+var lyricsBadTr = function(){
+    fs.readdir('./badtr', function (err, files) {
         if(err) console.log(err);
-      allLyricsBadFr = files.filter(function(e){if(e!="README.md") return e;}).map(function(e) { 
+      allLyricsBadTr = files.filter(function(e){if(e!="README.md") return e;}).map(function(e) { 
             var splitted = e.replace(".txt","").replace(".mp3","").split("__");
             return [splitted[0], splitted[1]];
       });
     });
 };
-lyricsBadFr();
+lyricsBadTr();
 
 
 
@@ -138,9 +138,9 @@ var lineToLine = function(client, channelID, lyrics){
 /* Radnomize the file to use, and then call the previous function to display the lyrics*/
 var blindTest = function(client, channelID, typeGame){
     currentChan = channelID;
-    if(typeGame == 'badfr'){
-        currentFile = allLyricsBadFr[Math.floor(allLyricsBadFr.length*Math.random())];
-        path = './badfr/'+currentFile[0]+"__"+currentFile[1]+".txt";
+    if(typeGame == 'badtr'){
+        currentFile = allLyricsBadTr[Math.floor(allLyricsBadTr.length*Math.random())];
+        path = './badtr/'+currentFile[0]+"__"+currentFile[1]+".txt";
     }
     else{
         currentFile = allLyrics[Math.floor(allLyrics.length*Math.random())];
@@ -239,9 +239,9 @@ bot.on('message', function (user, userID, channelID, message, evt) {
                 if(!isRunning)
                     blindTest(bot, channelID, 'normal');
             break;
-            case 'badfr':
+            case 'badtr':
                 if(!isRunning)
-                    blindTest(bot, channelID, 'badfr');
+                    blindTest(bot, channelID, 'badtr');
             break;
             case 'stop':
                 if(lyricsRunning){
@@ -267,7 +267,7 @@ bot.on('message', function (user, userID, channelID, message, evt) {
                                 },
                                 {
                                     name: "**__Paroles mal traduites en français__**",
-                                    value: "\`\`\`"+allLyricsBadFr.map(function(e) { 
+                                    value: "\`\`\`"+allLyricsBadTr.map(function(e) { 
                                               return toTitleCase(e[0].replace(/_/g," "))+" - "+toTitleCase(e[1].replace(/_/g," ").replace(".txt","").replace(".mp3",""));
                                             }).join("\n")+"\`\`\`"
                                 },
@@ -290,12 +290,12 @@ bot.on('message', function (user, userID, channelID, message, evt) {
             case 'update-songs':
                 lyrics();
                 sounds();
-                lyricsBadFr();
+                lyricsBadTr();
             break;
             case 'help':
                 bot.sendMessage({
                         to: channelID,
-                        message: "Je suis un bot qui fait des blind-tests et vous pouvez me demander :\n\`$play\` : joue un extrait musical dans le channel audio dédié, vous avez 30 secondes pour trouver le **nom de la chanson**\n\`$lyrics\` : écrit les paroles d'une chanson ligne par ligne, vous devez trouver le **nom de la chanson** avant la fin des paroles\n\`$badfr\` : fait la même chose que \`$lyrics\`, mais avec des paroles traduites directement par Google Translate\n\`$list\` : affiche la liste des morceaux disponibles\n\`$stop\` : arrête la partie en cours\n"
+                        message: "Je suis un bot qui fait des blind-tests et vous pouvez me demander :\n\`$play\` : joue un extrait musical dans le channel audio dédié, vous avez 30 secondes pour trouver le **nom de la chanson**\n\`$lyrics\` : écrit les paroles d'une chanson ligne par ligne, vous devez trouver le **nom de la chanson** avant la fin des paroles\n\`$badtr\` : fait la même chose que \`$lyrics\`, mais avec des paroles traduites directement par Google Translate\n\`$list\` : affiche la liste des morceaux disponibles\n\`$stop\` : arrête la partie en cours\n"
                     });
             break;
          }
