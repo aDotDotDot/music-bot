@@ -26,4 +26,7 @@ You can use these commands :
 
 `$badtr` : basically do the same thing as `$lyrics`, but with bad translations from Google Translate
 
+`$scores` : display the leaderboard
+
 `$list` : display the samples available (for checking purposes, don't cheat !)
+
