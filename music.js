@@ -17,9 +17,22 @@ var bot = new Discord.Client({
 //ffmpeg -i input.mp4 -af areverse reversed.mp3
 
 
-
-// var chanMusicId = "437691550622023680";
-var chanMusicId = "401669627391770625";//the channel wehere we will play music samples
+var findSuitableChannels = function(client){
+    var channels = client.channels;
+    var servers = Object.keys(client.servers);
+    var suitableChans = {};
+    for(var s in servers){
+        suitableChans[servers[s]] = [];
+    }
+    for(var i in channels){
+        if(channels[i].type == 2){
+            suitableChans[channels[i].guild_id].push({id: channels[i].id, name:channels[i].name, permission_length:Object.keys(channels[i].permissions.role).length});
+        }
+    }
+    return suitableChans;
+};
+var suitableChannels;
+var chanMusicId;//the channel wehere we will play music samples
 
 /*Compute the levenshtein distance between 2 strings
 i.e. the minimum number of single-character edits (insertions, deletions or substitutions) required to change one word into the other*/
@@ -163,6 +176,7 @@ var blindTest = function(client, channelID, typeGame){
 var audioTest = function(client, channelID){
     isRunning = true;
     currentChan = channelID;
+    chanMusicId = suitableChannels[client.channels[channelID].guild_id][0].id;//using the first one, maybe try/catch to get the rigth one
     client.joinVoiceChannel(chanMusicId, function(error, events) {
     //Check to see if any errors happen while joining.
         if (error) return console.error(error);
@@ -210,6 +224,7 @@ var winner = function(user, userID, message, channelID, evt, client){
 
 /* Bot stuff, creating ready and disconnect events*/
 bot.on('ready', function (evt) {
+    suitableChannels = findSuitableChannels(bot);
     logger.info('Connected');
     logger.info('Logged in as: ');
     logger.info(bot.username + ' - (' + bot.id + ')');
@@ -297,6 +312,9 @@ bot.on('message', function (user, userID, channelID, message, evt) {
                         to: channelID,
                         message: "Je suis un bot qui fait des blind-tests et vous pouvez me demander :\n\`$play\` : joue un extrait musical dans le channel audio dédié, vous avez 30 secondes pour trouver le **nom de la chanson**\n\`$lyrics\` : écrit les paroles d'une chanson ligne par ligne, vous devez trouver le **nom de la chanson** avant la fin des paroles\n\`$badtr\` : fait la même chose que \`$lyrics\`, mais avec des paroles traduites directement par Google Translate\n\`$list\` : affiche la liste des morceaux disponibles\n\`$stop\` : arrête la partie en cours\n"
                     });
+            break;
+            case 'chan':
+                findSuitableChannel(bot);
             break;
          }
      }else{//no command was recognized, but we have to figure if it's a good answer 
