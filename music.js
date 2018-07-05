@@ -202,7 +202,7 @@ var winner = function(user, userID, message, channelID, evt, client){
     currentChan = null;
     client.sendMessage({
                         to: channelID,
-                        message: "Bravo "+user+"\nC'était bien "+toTitleCase(currentFile[0].replace(/_/g," "))+" - "+toTitleCase(currentFile[1].replace(/_/g," "))+""
+                        message: "Bravo **"+user+"**\nC'était bien **"+toTitleCase(currentFile[0].replace(/_/g," "))+"** - **"+toTitleCase(currentFile[1].replace(/_/g," "))+"**"
                     });
     currentFile = null;
 };
