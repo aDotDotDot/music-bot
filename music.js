@@ -13,10 +13,16 @@ var bot = new Discord.Client({
    token: auth.token,
    autorun: true
 });
+//reverse sound
+//ffmpeg -i input.mp4 -af areverse reversed.mp3
+
+
 
 // var chanMusicId = "437691550622023680";
-var chanMusicId = "401669627391770625";
+var chanMusicId = "401669627391770625";//the channel wehere we will play music samples
 
+/*Compute the levenshtein distance between 2 strings
+i.e. the minimum number of single-character edits (insertions, deletions or substitutions) required to change one word into the other*/
 var levenshtein = function(str,str2) {
      var cost = new Array(),
          str1 = str,
@@ -52,45 +58,62 @@ var levenshtein = function(str,str2) {
  return cost[n][m];  
 };
 
+/*Capitalize the first letter of each word*/
 var toTitleCase = function(str) {
     return str.replace(/\w\S*/g, function(txt){
         return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
     });
 };
 
-var allParoles = [];
-var allParolesBadFr = [];
+
+/* Initialization of stuff */
+var allLyrics = [];
+var allLyricsBadFr = [];
 var allSound = [];
-var paroles = function(){
+var lyrics = function(){
     fs.readdir('./lyrics', function (err, files) {
         if(err) console.log(err);
-      //console.log(files);
-      allParoles = files;
+      allLyrics = files.filter(function(e){if(e!="README.md") return e;}).map(function(e) { 
+            var splitted = e.replace(".txt","").replace(".mp3","").split("__");
+            return [splitted[0], splitted[1]];
+      });
     });
 };
-paroles();
+lyrics();
 var sounds = function(){
     fs.readdir('./samples', function (err, files) {
         if(err) console.log(err);
-      //console.log(files);
-      allSound = files;
+      allSound = files.filter(function(e){if(e!="README.md") return e;}).map(function(e) { 
+            var splitted = e.replace(".txt","").replace(".mp3","").split("__");
+            return [splitted[0], splitted[1]];
+      });
     });
 };
 sounds();
-var parolesBadFr = function(){
+var lyricsBadFr = function(){
     fs.readdir('./badfr', function (err, files) {
         if(err) console.log(err);
-      //console.log(files);
-      allParolesBadFr = files;
+      allLyricsBadFr = files.filter(function(e){if(e!="README.md") return e;}).map(function(e) { 
+            var splitted = e.replace(".txt","").replace(".mp3","").split("__");
+            return [splitted[0], splitted[1]];
+      });
     });
 };
-parolesBadFr();
+lyricsBadFr();
+
+
+
+/* Variables used globally by the bot */
 var lyricsRunning;
 var isRunning = false;
 var currentFile = "";
 var clearLine = false;
 var currentChan = "";
 var currentStream;
+
+/*And now the functions used to (dis)play*/
+
+/*Display line after line of a string, every second*/
 var lineToLine = function(client, channelID, lyrics){
     if(clearLine){
         lyrics = [];
@@ -112,20 +135,16 @@ var lineToLine = function(client, channelID, lyrics){
     }, 1000);
 };
 
-
-//reverse sound
-//ffmpeg -i input.mp4 -af areverse reversed.mp3
-
+/* Radnomize the file to use, and then call the previous function to display the lyrics*/
 var blindTest = function(client, channelID, typeGame){
     currentChan = channelID;
-    //console.log(allParoles);
     if(typeGame == 'badfr'){
-        currentFile = allParolesBadFr[Math.floor(allParolesBadFr.length*Math.random())];
-        path = './badfr/'+currentFile;
+        currentFile = allLyricsBadFr[Math.floor(allLyricsBadFr.length*Math.random())];
+        path = './badfr/'+currentFile[0]+"__"+currentFile[1]+".txt";
     }
     else{
-        currentFile = allParoles[Math.floor(allParoles.length*Math.random())];
-        path = './lyrics/'+currentFile;
+        currentFile = allLyrics[Math.floor(allLyrics.length*Math.random())];
+        path = './lyrics/'+currentFile[0]+"__"+currentFile[1]+".txt";
     }
     fs.readFile(path, 'utf8', function (err,data) {
       if (err) {
@@ -139,6 +158,8 @@ var blindTest = function(client, channelID, typeGame){
                     });
 }
 
+
+/*Play a random sound sample in the chanMusicId, then quit the channel*/
 var audioTest = function(client, channelID){
     isRunning = true;
     currentChan = channelID;
@@ -147,17 +168,17 @@ var audioTest = function(client, channelID){
         if (error) return console.error(error);
         //Then get the audio context
         client.getAudioContext(chanMusicId, function(error, stream) {
-            currentStream = stream;
+            currentStream = stream;//we will use this globally to stop the stream when someone has the correct answer
         //Once again, check to see if any errors exist
             if (error) return console.error(error);
             currentFile = allSound[Math.floor(allSound.length*Math.random())];
-            //Create a stream to your file and pipe it to the stream
-            //Without {end: false}, it would close up the stream, so make sure to include that.
-            fs.createReadStream('./samples/'+currentFile).pipe(stream, {end: false});
-            stream.emit('done');
+            //Create a stream to the file and pipe it to the stream
+            //Without {end: false}, it would close up the stream
+            fs.createReadStream('./samples/'+currentFile[0]+"__"+currentFile[1]+'.mp3').pipe(stream, {end: false});
+            //stream.emit('done');
             //The stream fires `done` when it's got nothing else to send to Discord.
             stream.on('done', function() {
-            //Handle
+            //Handle the event, the game is not running anymore, no stream is available anymore
                 client.leaveVoiceChannel(chanMusicId, function(err){
                     isRunning = false;
                     currentStream = null;
@@ -167,6 +188,7 @@ var audioTest = function(client, channelID){
     });
 };
 
+/* Clear the global variables, and announce the winner*/
 var winner = function(user, userID, message, channelID, evt, client){
     //console.log(user, userID, message, channelID, evt);
     if(currentStream)
@@ -180,15 +202,13 @@ var winner = function(user, userID, message, channelID, evt, client){
     currentChan = null;
     client.sendMessage({
                         to: channelID,
-                        message: "Bravo "+user
+                        message: "Bravo "+user+"\nC'était bien "+toTitleCase(currentFile[0].replace(/_/g," "))+" - "+toTitleCase(currentFile[1].replace(/_/g," "))+""
                     });
+    currentFile = null;
 };
-/*
-WHITE HEAVY CHECK MARK => 9989 => 
-NEGATIVE SQUARED CROSS MARK => 10062
 
-*/
 
+/* Bot stuff, creating ready and disconnect events*/
 bot.on('ready', function (evt) {
     logger.info('Connected');
     logger.info('Logged in as: ');
@@ -198,6 +218,8 @@ bot.on('disconnect', function(erMsg, code) {
     logger.info('----- Bot disconnected from Discord with code', code, 'for reason:', erMsg, '-----');
     bot.connect();
 });
+
+
 bot.on('message', function (user, userID, channelID, message, evt) {
     // Our bot needs to know if it will execute a command
     // It will listen for messages that will start with `!`
@@ -239,20 +261,20 @@ bot.on('message', function (user, userID, channelID, message, evt) {
                                 },
                                 fields: [{
                                     name: "**__Paroles originales__**",
-                                    value: "\`\`\`"+allParoles.map(function(e) { 
-                                              return toTitleCase(e.replace(/_/g," ").replace(".txt","").replace(".mp3",""));
+                                    value: "\`\`\`"+allLyrics.map(function(e) { 
+                                              return toTitleCase(e[0].replace(/_/g," "))+" - "+toTitleCase(e[1].replace(/_/g," ").replace(".txt","").replace(".mp3",""));
                                             }).join("\n")+"\`\`\`"
                                 },
                                 {
                                     name: "**__Paroles mal traduites en français__**",
-                                    value: "\`\`\`"+allParolesBadFr.map(function(e) { 
-                                              return toTitleCase(e.replace(/_/g," ").replace(".txt","").replace(".mp3",""));
+                                    value: "\`\`\`"+allLyricsBadFr.map(function(e) { 
+                                              return toTitleCase(e[0].replace(/_/g," "))+" - "+toTitleCase(e[1].replace(/_/g," ").replace(".txt","").replace(".mp3",""));
                                             }).join("\n")+"\`\`\`"
                                 },
                                 {
                                     name: "**__Extraits__**",
                                     value: "\`\`\`"+allSound.map(function(e) { 
-                                              return toTitleCase(e.replace(/_/g," ").replace(".txt","").replace(".mp3",""));
+                                              return toTitleCase(e[0].replace(/_/g," "))+" - "+toTitleCase(e[1].replace(/_/g," ").replace(".txt","").replace(".mp3",""));
                                             }).join("\n")+"\`\`\`"
                                 }
                                 ],
@@ -266,9 +288,9 @@ bot.on('message', function (user, userID, channelID, message, evt) {
                     });
             break;
             case 'update-songs':
-                paroles();
+                lyrics();
                 sounds();
-                parolesBadFr();
+                lyricsBadFr();
             break;
             case 'help':
                 bot.sendMessage({
@@ -277,14 +299,16 @@ bot.on('message', function (user, userID, channelID, message, evt) {
                     });
             break;
          }
-     }else{
+     }else{//no command was recognized, but we have to figure if it's a good answer 
          if(isRunning && channelID == currentChan){
-                distance = levenshtein(message.toLowerCase(), currentFile.replace(/_/g," ").replace(".txt","").replace(".mp3","").toLowerCase());
-                //console.log(message, currentFile.replace(/_/g," ").replace(".txt","").replace(".mp3","").toLowerCase(), distance);
-                if(distance <= 3){
+             /*
+            WHITE HEAVY CHECK MARK => 9989 => 
+            NEGATIVE SQUARED CROSS MARK => 10062
+            */
+                distance = levenshtein(message.toLowerCase(), currentFile[1].replace(/_/g," ").replace(".txt","").replace(".mp3","").toLowerCase());
+                if(distance <= 3){//close enough from the original string (maybe be tweaked later)
                     bot.addReaction({channelID:channelID, messageID: evt.d.id, reaction:"\u2705"});
                     winner(user, userID, message, channelID, evt, bot);
-
                 }else{
                     bot.addReaction({channelID:channelID, messageID: evt.d.id, reaction:"\u274E"});
                 }
