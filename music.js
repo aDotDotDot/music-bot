@@ -16,7 +16,32 @@ var bot = new Discord.Client({
 //reverse sound
 //ffmpeg -i input.mp4 -af areverse reversed.mp3
 
+var currentScores;
+var loadScores = function(){
+    fs.readFile('./scores.json', 'utf8', function (err, data) {
+    if (err){
+        saveScores({});
+        currentScores = {};
+    }else{
+        if(data)
+            currentScores = JSON.parse(data);
+        else
+            currentScores = {};
+    }
+    
+    });
+};
+loadScores();
+var saveScores = function(dataScore){
+    var json = JSON.stringify(dataScore);
+    fs.writeFile('./scores.json', json, 'utf8', function(err){
+        if (err) throw err;
+    });
+};
 
+
+
+/* Finds the voice channels in every server the bot is connected to */
 var findSuitableChannels = function(client){
     var channels = client.channels;
     var servers = Object.keys(client.servers);
@@ -123,7 +148,7 @@ var currentFile = "";
 var clearLine = false;
 var currentChan = "";
 var currentStream;
-
+var currentGameType = "";
 /*And now the functions used to (dis)play*/
 
 /*Display line after line of a string, every second*/
@@ -148,14 +173,16 @@ var lineToLine = function(client, channelID, lyrics){
     }, 1000);
 };
 
-/* Radnomize the file to use, and then call the previous function to display the lyrics*/
+/* Randomize the file to use, and then call the previous function to display the lyrics*/
 var blindTest = function(client, channelID, typeGame){
     currentChan = channelID;
     if(typeGame == 'badtr'){
+        currentGameType = "badtr";
         currentFile = allLyricsBadTr[Math.floor(allLyricsBadTr.length*Math.random())];
         path = './badtr/'+currentFile[0]+"__"+currentFile[1]+".txt";
     }
     else{
+        currentGameType = "lyrics";
         currentFile = allLyrics[Math.floor(allLyrics.length*Math.random())];
         path = './lyrics/'+currentFile[0]+"__"+currentFile[1]+".txt";
     }
@@ -176,6 +203,7 @@ var blindTest = function(client, channelID, typeGame){
 var audioTest = function(client, channelID){
     isRunning = true;
     currentChan = channelID;
+    currentGameType = "audio";
     chanMusicId = suitableChannels[client.channels[channelID].guild_id][0].id;//using the first one, maybe try/catch to get the rigth one
     client.joinVoiceChannel(chanMusicId, function(error, events) {
     //Check to see if any errors happen while joining.
@@ -202,9 +230,62 @@ var audioTest = function(client, channelID){
     });
 };
 
+/*Handles the display of the scores*/
+var displayScores = function(serverID, channelID, client){
+    if(!currentScores[serverID] || Object.keys(currentScores[serverID]).length < 1){
+        client.sendMessage({
+            to: channelID,
+            message: "Personne n'a de point"
+        });
+    }else{
+        embedStr = {color: 0x00ff00,
+                    footer: {
+                        text: ""
+                    },
+                    fields: [],
+                    title: '',
+                    url: ''
+                };
+        for( var i in currentScores[serverID]){
+            var field = {
+                        name: "**__"+client.users[i].username+"__**",
+                        value: "Score : **"+currentScores[serverID][i].score+"** (Audio : "+currentScores[serverID][i].scoreSound+", Paroles : "+currentScores[serverID][i].scoreLyrics+", Mauvaise traduction : "+currentScores[serverID][i].scoreBadTr+")",
+                        score: currentScores[serverID][i].score
+                    }
+            embedStr.fields.push(field);
+        }
+        embedStr.fields = embedStr.fields.sort(function(x, y) {
+            return y.score - x.score;
+        });
+        embedStr.fields = embedStr.fields.filter(function(e){
+            return {name: e.name, value:e.value};
+        });
+        client.sendMessage({
+            to: channelID,
+            message: embedStr.fields[0].name+" est en tête",
+            embed: embedStr
+        });
+    }
+};
+
 /* Clear the global variables, and announce the winner*/
 var winner = function(user, userID, message, channelID, evt, client){
     //console.log(user, userID, message, channelID, evt);
+    var server_id = client.channels[channelID].guild_id;
+    //computing scores
+    if(!currentScores[server_id])
+        currentScores[server_id] = {};
+    if(!currentScores[server_id][userID])
+        currentScores[server_id][userID] = {score: 0, scoreSound: 0, scoreLyrics: 0, scoreBadTr: 0};
+    currentScores[server_id][userID].score++;
+    if(currentGameType == "badtr")
+        currentScores[server_id][userID].scoreBadTr++;
+    if(currentGameType == "lyrics")
+        currentScores[server_id][userID].scoreLyrics++;
+    if(currentGameType == "audio")
+        currentScores[server_id][userID].scoreSound++;
+    saveScores(currentScores);
+    /*stopping everything*/
     if(currentStream)
         currentStream.stop();
     if(lyricsRunning){
@@ -212,8 +293,10 @@ var winner = function(user, userID, message, channelID, evt, client){
         clearLine = true;
         lineToLine(client, channelID, []);
     }
+    currentGameType = "";
     isRunning = false;
     currentChan = null;
+    //we can now congratulate the winner
     client.sendMessage({
                         to: channelID,
                         message: "Bravo **"+user+"**\nC'était bien **"+toTitleCase(currentFile[0].replace(/_/g," "))+"** - **"+toTitleCase(currentFile[1].replace(/_/g," "))+"**"
@@ -313,8 +396,8 @@ bot.on('message', function (user, userID, channelID, message, evt) {
                         message: "Je suis un bot qui fait des blind-tests et vous pouvez me demander :\n\`$play\` : joue un extrait musical dans le channel audio dédié, vous avez 30 secondes pour trouver le **nom de la chanson**\n\`$lyrics\` : écrit les paroles d'une chanson ligne par ligne, vous devez trouver le **nom de la chanson** avant la fin des paroles\n\`$badtr\` : fait la même chose que \`$lyrics\`, mais avec des paroles traduites directement par Google Translate\n\`$list\` : affiche la liste des morceaux disponibles\n\`$stop\` : arrête la partie en cours\n"
                     });
             break;
-            case 'chan':
-                findSuitableChannel(bot);
+            case 'scores':
+                displayScores(bot.channels[channelID].guild_id, channelID, bot);
             break;
          }
      }else{//no command was recognized, but we have to figure if it's a good answer 
