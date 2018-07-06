@@ -149,6 +149,40 @@ var downloadVideo = function(what, editMessageInfo){
       });
 }
 
+/*var playFromYT = function(what, client, channelID){
+    isRunning = true;
+    chanMusicId = suitableChannels[client.channels[channelID].guild_id][0].id;//using the first one, maybe try/catch to get the rigth one
+    var streamYT = ytdl(what.url, {
+                                          quality: 'highestaudio',
+                                          //filter: 'audioonly',
+                                        });
+    var start = Date.now();
+    ffmpeg(streamYT).audioBitrate(128).save("/tmp/yt_read_"+start+".mp3").on('end', () => {
+
+        client.joinVoiceChannel(chanMusicId, function(error, events) {
+        //Check to see if any errors happen while joining.
+            if (error) return console.error(error);
+            //Then get the audio context
+            client.getAudioContext(chanMusicId, function(error, stream) {
+                if (error) return console.error(error);
+                currentStream = stream;//we will use this globally to stop the stream when someone has the correct answer
+                fs.createReadStream("/tmp/yt_read_"+start+".mp3").pipe(stream, {end: false});
+                
+                stream.on('done', function() {
+                //Handle the event, the game is not running anymore, no stream is available anymore
+                    client.leaveVoiceChannel(chanMusicId, function(err){
+                        isRunning = false;
+                        currentStream = null;
+                    });
+                });
+            });
+        });
+    
+    });
+    
+    
+}*/
+
 var playlist;
 var loadPlaylist = function(){
     fs.readFile('./playlist.json', 'utf8', function (err, data) {
@@ -477,7 +511,6 @@ bot.on('message', function (user, userID, channelID, message, evt) {
         var args = message.substring(1).split(' ');
         var cmd = args[0];
         args = args.splice(1);
-        console.log(cmd, args);
         switch(cmd) {
             case 'play':
                 if(!isRunning)
@@ -545,6 +578,9 @@ bot.on('message', function (user, userID, channelID, message, evt) {
                     downloadVideo(itemDL, {client: bot, message_id: evt.d.id, channel_id: channelID});
                 }
             break;
+            /*case 'play-from-yt':
+                playFromYT({url:args[0]}, bot, channelID);
+            break;*/
          }
      }else{//no command was recognized, but we have to figure if it's a good answer 
          if(isRunning && channelID == currentChan){

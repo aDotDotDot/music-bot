@@ -215,6 +215,30 @@
             "artist": "Lynyrd Skynyrd",
             "song": "Sweet Home Alabama",
             "downloaded": 1
+        },
+        {
+            "url": "add-song  https://www.youtube.com/watch?v=l482T0yNkeo",
+            "artist": "ac dc",
+            "song": "highway to hell",
+            "downloaded": 1
+        },
+        {
+            "url": "add-song https://www.youtube.com/watch?v=zUzd9KyIDrM&index=3&list=RDEMRoCx7NEN4B1lXoHSAiz26w",
+            "artist": "System Of A Down",
+            "song": "B.Y.O.B.",
+            "downloaded": 1
+        },
+        {
+            "url": "add-song https://www.youtube.com/watch?v=zUzd9KyIDrM",
+            "artist": "System Of A Down",
+            "song": "B.Y.O.B.",
+            "downloaded": 1
+        },
+        {
+            "url": "add-song https://www.youtube.com/watch?v=LoheCz4t2xc&list=RDEMRoCx7NEN4B1lXoHSAiz26w&index=6",
+            "artist": "System Of A Down",
+            "song": "Hypnotize",
+            "downloaded": 1
         }
     ],
     "lyrics": [
