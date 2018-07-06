@@ -1,0 +1,258 @@
+{
+    "audio": [
+        {
+            "url": "https://www.youtube.com/watch?v=J0N1yY937qg",
+            "artist": "iron maiden",
+            "song": "fear of the dark",
+            "downloaded": 1
+        },
+        {
+            "url": "https://www.youtube.com/watch?v=2G5rfPISIwo",
+            "artist": "iron maiden",
+            "song": "the trooper",
+            "downloaded": 1
+        },
+        {
+            "url": "https://www.youtube.com/watch?v=pwT9G6t-SKI",
+            "artist": "iron maiden",
+            "song": "dream of mirrors",
+            "downloaded": 1
+        },
+        {
+            "url": "https://www.youtube.com/watch?v=4_FDjDwNygM",
+            "artist": "iron maiden",
+            "song": "brave new world",
+            "downloaded": 1
+        },
+        {
+            "url": "https://www.youtube.com/watch?v=EzgGTTtR0kc",
+            "artist": "metallica",
+            "song": "one",
+            "downloaded": 1
+        },
+        {
+            "url": "https://www.youtube.com/watch?v=waBb-UM5m4g",
+            "artist": "metallica",
+            "song": "nothing else matters",
+            "downloaded": 1
+        },
+        {
+            "url": "https://www.youtube.com/watch?v=Ckom3gf57Yw",
+            "artist": "metallica",
+            "song": "the unforgiven",
+            "downloaded": 1
+        },
+        {
+            "url": "https://www.youtube.com/watch?v=3rFoGVkZ29w",
+            "artist": "metallica",
+            "song": "st anger",
+            "downloaded": 1
+        },
+        {
+            "url": "https://www.youtube.com/watch?v=YlUKcNNmywk",
+            "artist": "red hot chili peppers",
+            "song": "californication",
+            "downloaded": 1
+        },
+        {
+            "url": "https://www.youtube.com/watch?v=0fcRa5Z6LmU",
+            "artist": "red hot chili peppers",
+            "song": "the zephyr song",
+            "downloaded": 1
+        },
+        {
+            "url": "https://www.youtube.com/watch?v=Q0oIoR9mLwc",
+            "artist": "red hot chili peppers",
+            "song": "dark necessities",
+            "downloaded": 1
+        },
+        {
+            "url": "https://www.youtube.com/watch?v=rn_YodiJO6k",
+            "artist": "red hot chili peppers",
+            "song": "otherside",
+            "downloaded": 1
+        },
+        {
+            "url": "https://www.youtube.com/watch?v=lwlogyj7nFE",
+            "artist": "red hot chili peppers",
+            "song": "under the bridge",
+            "downloaded": 1
+        },
+        {
+            "url": "https://www.youtube.com/watch?v=JnfyjwChuNU",
+            "artist": "red hot chili peppers",
+            "song": "by the way",
+            "downloaded": 1
+        },
+        {
+            "url": "https://www.youtube.com/watch?v=Sb5aq5HcS1A",
+            "artist": "red hot chili peppers",
+            "song": "dani california",
+            "downloaded": 1
+        },
+        {
+            "url": "https://www.youtube.com/watch?v=iywaBOMvYLI",
+            "artist": "system of a down",
+            "song": "toxicity",
+            "downloaded": 1
+        },
+        {
+            "url": "https://www.youtube.com/watch?v=CSvFpBOe8eY",
+            "artist": "system of a down",
+            "song": "chop suey",
+            "downloaded": 1
+        },
+        {
+            "url": "https://www.youtube.com/watch?v=hTWKbfoikeg",
+            "artist": "nirvana",
+            "song": "smells like teen spirit",
+            "downloaded": 1
+        },
+        {
+            "url": "https://www.youtube.com/watch?v=h_L4Rixya64",
+            "artist": "foo fighters",
+            "song": "best of you",
+            "downloaded": 1
+        },
+        {
+            "url": "https://www.youtube.com/watch?v=eVTXPUF4Oz4",
+            "artist": "linkin park",
+            "song": "in the end",
+            "downloaded": 1
+        },
+        {
+            "url": "https://www.youtube.com/watch?v=LYU-8IFcDPw",
+            "artist": "linkin park",
+            "song": "faint",
+            "downloaded": 1
+        },
+        {
+            "url": "https://www.youtube.com/watch?v=kXYiU_JCYtU",
+            "artist": "linkin park",
+            "song": "numb",
+            "downloaded": 1
+        },
+        {
+            "url": "https://www.youtube.com/watch?v=pAgnJDJN4VA",
+            "artist": "ac dc",
+            "song": "back in black",
+            "downloaded": 1
+        },
+        {
+            "url": "https://www.youtube.com/watch?v=EqPtz5qN7HM",
+            "artist": "eagles",
+            "song": "hotel california",
+            "downloaded": 1
+        },
+        {
+            "url": "https://www.youtube.com/watch?v=fJ9rUzIMcZQ",
+            "artist": "queen",
+            "song": "bohemian rhapsody",
+            "downloaded": 1
+        },
+        {
+            "url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+            "artist": "rick astley",
+            "song": "never gonna give you up",
+            "downloaded": 1
+        },
+        {
+            "url": "https://www.youtube.com/watch?v=FTQbiNvZqaY",
+            "artist": "toto",
+            "song": "africa",
+            "downloaded": 1
+        },
+        {
+            "url": "https://www.youtube.com/watch?v=0jgrCKhxE1s",
+            "artist": "dragonforce",
+            "song": "through the fire and flames",
+            "downloaded": 1
+        },
+        {
+            "url": "add-song https://www.youtube.com/watch?v=h8IuFl3sMhk",
+            "artist": "iron maiden",
+            "song": "phantom of the opera",
+            "downloaded": 1
+        },
+        {
+            "url": "add-song https://www.youtube.com/watch?v=J51LPlP-s9o",
+            "artist": "iron maiden",
+            "song": "hallowed be thy name",
+            "downloaded": 1
+        },
+        {
+            "url": "add-song https://www.youtube.com/watch?v=Nnu1E5Kslig",
+            "artist": "led zeppelin",
+            "song": "stairway to heaven",
+            "downloaded": 1
+        },
+        {
+            "url": "add-song https://www.youtube.com/watch?v=Rbm6GXllBiw",
+            "artist": "guns n roses",
+            "song": "paradise city",
+            "downloaded": 1
+        },
+        {
+            "url": "add-song https://www.youtube.com/watch?v=6Ejga4kJUts",
+            "artist": "The Cranberries",
+            "song": "zombie",
+            "downloaded": 1
+        },
+        {
+            "url": "add-song https://www.youtube.com/watch?v=YFh2vpGeoIk",
+            "artist": "scorpions",
+            "song": "wind of change",
+            "downloaded": 1
+        },
+        {
+            "url": "add-song https://www.youtube.com/watch?v=OKvCV8MFIaw",
+            "artist": "R.E.M",
+            "song": "losing my religion",
+            "downloaded": 1
+        },
+        {
+            "url": "add-song https://www.youtube.com/watch?v=-Du-CWASm20",
+            "artist": "Lynyrd Skynyrd",
+            "song": "Sweet Home Alabama",
+            "downloaded": 1
+        }
+    ],
+    "lyrics": [
+        {
+            "url": "https://www.musixmatch.com/lyrics/LINKIN-PARK/Numb",
+            "artist": "linkin park",
+            "song": "numb",
+            "downloaded": 0
+        },
+        {
+            "url": "https://www.musixmatch.com/lyrics/Metallica/St-Anger",
+            "artist": "metallica",
+            "song": "st anger",
+            "downloaded": 0
+        },
+        {
+            "url": "https://www.musixmatch.com/lyrics/Eagles/Hotel-California",
+            "artist": "eagles",
+            "song": "hotel california",
+            "downloaded": 0
+        },
+        {
+            "url": "https://www.musixmatch.com/lyrics/Queen/Bohemian-Rhapsody",
+            "artist": "queen",
+            "song": "bohemian rhapsody",
+            "downloaded": 0
+        },
+        {
+            "url": "https://www.musixmatch.com/lyrics/Rick-Astley/Never-Gonna-Give-You-Up",
+            "artist": "rick astley",
+            "song": "never gonna give you up",
+            "downloaded": 0
+        },
+        {
+            "url": "https://www.musixmatch.com/lyrics/Tot%C3%B2/Africa",
+            "artist": "toto",
+            "song": "africa",
+            "downloaded": 0
+        }
+    ]
+}

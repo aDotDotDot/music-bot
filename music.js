@@ -1,6 +1,9 @@
 var Discord = require('discord.io');
 var logger = require('winston');
 var fs = require('fs');
+const ffmpeg = require('fluent-ffmpeg');
+var ytdl = require('ytdl-core');
+const readline = require('readline');
 var auth = require('./auth.json');
 // Configure logger settings
 logger.remove(logger.transports.Console);
@@ -33,13 +36,142 @@ var loadScores = function(){
 };
 loadScores();
 var saveScores = function(dataScore){
-    var json = JSON.stringify(dataScore);
+    var json = JSON.stringify(dataScore, null, 4);
     fs.writeFile('./scores.json', json, 'utf8', function(err){
         if (err) throw err;
     });
 };
 
+/*fileds in embed are limited to 1024 chars, we need to split our data to send it*/
+var getFieldsValue = function(){
+    var fields = [];
+    var lyricsMapped = allLyrics.map(function(e) { 
+                                              return toTitleCase(e[0].replace(/_/g," "))+" - "+toTitleCase(e[1].replace(/_/g," ").replace(".txt","").replace(".mp3",""));
+                                            }).join("\n");
+    if(lyricsMapped.length < 1012){
+        fields.push({
+                                    name: "**__Paroles originales__**",
+                                    value: "\`\`\`"+lyricsMapped+"\`\`\`"
+                                })
+    }else{
+        var currentField = { name: "**__Paroles originales__**", value: "\`\`\`"};
+        for(var i = 0; i < allLyrics.length; i++){
+            var e = allLyrics[i];
+            var nextSong = toTitleCase(e[0].replace(/_/g," "))+" - "+toTitleCase(e[1].replace(/_/g," ").replace(".txt","").replace(".mp3",""));
+            if(currentField.value.length + nextSong.length < 1005)
+                currentField.value += nextSong+"\n"
+            else{
+                currentField.value += "\n...\`\`\`";
+                fields.push(currentField);
+                currentField = { name: "**__Paroles originales (suite)__**", value: "\`\`\`"+nextSong+"\n"};
+            }
+        }
+        currentField.value += "...\`\`\`";
+        fields.push(currentField);
+    }
+   
+    var lyricsBadTrMapped = allLyricsBadTr.map(function(e) { 
+                                              return toTitleCase(e[0].replace(/_/g," "))+" - "+toTitleCase(e[1].replace(/_/g," ").replace(".txt","").replace(".mp3",""));
+                                            }).join("\n");
+    if(lyricsBadTrMapped.length < 1012){
+        fields.push({
+                                    name: "**__Paroles originales__**",
+                                    value: "\`\`\`"+lyricsBadTrMapped+"\`\`\`"
+                                })
+    }else{
+        var currentField = { name: "**__Paroles mal traduites en français__**", value: "\`\`\`"};
+        for(var i = 0; i < allLyricsBadTr.length; i++){
+            var e = allLyricsBadTr[i];
+            var nextSong = toTitleCase(e[0].replace(/_/g," "))+" - "+toTitleCase(e[1].replace(/_/g," ").replace(".txt","").replace(".mp3",""));
+            if(currentField.value.length + nextSong.length < 1005)
+                currentField.value += nextSong+"\n";
+            else{
+                currentField.value += "\n...\`\`\`";
+                fields.push(currentField);
+                currentField = { name: "**__Paroles mal traduites en français (suite)__**", value: "\`\`\`"+nextSong+"\n"};
+            }
+        }
+        currentField.value += "...\`\`\`";
+        fields.push(currentField);
+    }
+    
+    var audioMapped = allSound.map(function(e) { 
+                                              return toTitleCase(e[0].replace(/_/g," "))+" - "+toTitleCase(e[1].replace(/_/g," ").replace(".txt","").replace(".mp3",""))+"\n";
+                                            }).join("\n");
+    if(audioMapped.length < 1012){
+        fields.push({
+                                    name: "**__Paroles originales__**",
+                                    value: "\`\`\`"+audioMapped+"\`\`\`"
+                                })
+    }else{
+        var currentField = { name: "**__Extraits__**", value: "\`\`\`"};
+        for(var i = 0; i < allSound.length; i++){
+            var e = allSound[i];
+            var nextSong = toTitleCase(e[0].replace(/_/g," "))+" - "+toTitleCase(e[1].replace(/_/g," ").replace(".txt","").replace(".mp3",""));
+            if(currentField.value.length + nextSong.length < 1005)
+                currentField.value += nextSong+"\n"
+            else{
+                currentField.value += "\n...\`\`\`";
+                fields.push(currentField);
+                currentField = { name: "**__Extraits (suite)__**", value: "\`\`\`"+nextSong+"\n"};
+            }
+        }
+        currentField.value += "\`\`\`";
+        fields.push(currentField);
+    }
+    return fields;
+}
 
+
+var downloadVideo = function(what, editMessageInfo){
+    var stream = ytdl(what.url, {
+      quality: 'highestaudio',
+      //filter: 'audioonly',
+    });
+    var start = Date.now();
+    var finalFileName = what.artist.toLowerCase().replace(/ /gi,"_") + "__" + what.song.toLowerCase().replace(/ /gi,"_") + ".mp3"
+    ffmpeg(stream)
+      .audioBitrate(128)
+      .duration(60)
+      .save("samples/"+finalFileName)
+      /*.on('progress', (p) => {
+        readline.cursorTo(process.stdout, 0);
+        process.stdout.write(`${p.targetSize}kb downloaded`);
+      })*/
+      .on('end', () => {
+        console.log(what.song + " done, thanks - "+((Date.now() - start) / 1000)+"s");
+        if(editMessageInfo){
+            var client = editMessageInfo.client;
+            client.addReaction({channelID:editMessageInfo.channel_id, messageID: editMessageInfo.message_id, reaction:"\uD83D\uDC4C"}, function(err){if(err) console.log(err)});
+        }
+        what.downloaded = 1;
+        updatePlaylist();
+      });
+}
+
+var playlist;
+var loadPlaylist = function(){
+    fs.readFile('./playlist.json', 'utf8', function (err, data) {
+        if (err){ 
+            console.log(err);
+            return;
+        }
+        playlist = JSON.parse(data);
+        for(var i = 0; i < playlist.audio.length; i++){
+            if(playlist.audio[i].downloaded == 0)
+                downloadVideo(playlist.audio[i]);
+        }
+    });
+};
+
+var updatePlaylist = function(){
+    var json = JSON.stringify(playlist, null, 4);
+    fs.writeFile('./playlist.json', json, 'utf8', function(err){
+        if (err) throw err;
+        sounds();
+    });
+}
+loadPlaylist();
 
 /* Finds the voice channels in every server the bot is connected to */
 var findSuitableChannels = function(client){
@@ -198,9 +330,10 @@ var blindTest = function(client, channelID, typeGame){
                     });
 }
 
-
+var someoneWon = false;
 /*Play a random sound sample in the chanMusicId, then quit the channel*/
 var audioTest = function(client, channelID){
+    someoneWon = false;
     isRunning = true;
     currentChan = channelID;
     currentGameType = "audio";
@@ -214,16 +347,30 @@ var audioTest = function(client, channelID){
         //Once again, check to see if any errors exist
             if (error) return console.error(error);
             currentFile = allSound[Math.floor(allSound.length*Math.random())];
+            var msgLose;
+            try{
+                msgLose = "Personne n'a trouvé\nC'était **"+toTitleCase(currentFile[0].replace(/_/g," "))+"** - **"+toTitleCase(currentFile[1].replace(/_/g," "))+"**";
+            }catch(e){
+                msgLose = "";
+            }
             //Create a stream to the file and pipe it to the stream
             //Without {end: false}, it would close up the stream
             fs.createReadStream('./samples/'+currentFile[0]+"__"+currentFile[1]+'.mp3').pipe(stream, {end: false});
             //stream.emit('done');
             //The stream fires `done` when it's got nothing else to send to Discord.
+            var vDone = 1;//avoiding the double 'done' event
             stream.on('done', function() {
             //Handle the event, the game is not running anymore, no stream is available anymore
                 client.leaveVoiceChannel(chanMusicId, function(err){
                     isRunning = false;
                     currentStream = null;
+                    if(vDone && !someoneWon){
+                        vDone--;
+                        client.sendMessage({
+                        to: channelID,
+                        message: msgLose
+                    });
+                    }
                 });
             });
           });
@@ -270,6 +417,7 @@ var displayScores = function(serverID, channelID, client){
 
 /* Clear the global variables, and announce the winner*/
 var winner = function(user, userID, message, channelID, evt, client){
+    someoneWon = true;
     //console.log(user, userID, message, channelID, evt);
     var server_id = client.channels[channelID].guild_id;
     //computing scores
@@ -325,9 +473,11 @@ bot.on('message', function (user, userID, channelID, message, evt) {
     if(userID == bot.id)
         return;
     if (message.substring(0, 1) == prefix) {
+        var dataDL = message.substring(1).replace(/\s*,\s*/gi,",").split(',');
         var args = message.substring(1).split(' ');
         var cmd = args[0];
         args = args.splice(1);
+        console.log(cmd, args);
         switch(cmd) {
             case 'play':
                 if(!isRunning)
@@ -357,25 +507,7 @@ bot.on('message', function (user, userID, channelID, message, evt) {
                                 footer: {
                                     text: ""
                                 },
-                                fields: [{
-                                    name: "**__Paroles originales__**",
-                                    value: "\`\`\`"+allLyrics.map(function(e) { 
-                                              return toTitleCase(e[0].replace(/_/g," "))+" - "+toTitleCase(e[1].replace(/_/g," ").replace(".txt","").replace(".mp3",""));
-                                            }).join("\n")+"\`\`\`"
-                                },
-                                {
-                                    name: "**__Paroles mal traduites en français__**",
-                                    value: "\`\`\`"+allLyricsBadTr.map(function(e) { 
-                                              return toTitleCase(e[0].replace(/_/g," "))+" - "+toTitleCase(e[1].replace(/_/g," ").replace(".txt","").replace(".mp3",""));
-                                            }).join("\n")+"\`\`\`"
-                                },
-                                {
-                                    name: "**__Extraits__**",
-                                    value: "\`\`\`"+allSound.map(function(e) { 
-                                              return toTitleCase(e[0].replace(/_/g," "))+" - "+toTitleCase(e[1].replace(/_/g," ").replace(".txt","").replace(".mp3",""));
-                                            }).join("\n")+"\`\`\`"
-                                }
-                                ],
+                                fields: getFieldsValue(),
                                 title: '',
                                 url: ''
                             };
@@ -383,6 +515,8 @@ bot.on('message', function (user, userID, channelID, message, evt) {
                         to: channelID,
                         message: "Je peux vous demander tout ça",
                         embed: embedStr
+                    }, function(err){
+                        if(err) console.log(err);
                     });
             break;
             case 'update-songs':
@@ -399,12 +533,25 @@ bot.on('message', function (user, userID, channelID, message, evt) {
             case 'scores':
                 displayScores(bot.channels[channelID].guild_id, channelID, bot);
             break;
+            case 'add-song':
+                if(dataDL.length < 3 ){
+                    bot.sendMessage({
+                        to: channelID,
+                        message: "Usage : \`add-song <youtube link>,<artist>,<title>\`"
+                    });
+                }else{
+                    var itemDL = {url: dataDL[0], artist: dataDL[1], song: dataDL[2], downloaded:0}
+                    playlist.audio.push(itemDL);
+                    downloadVideo(itemDL, {client: bot, message_id: evt.d.id, channel_id: channelID});
+                }
+            break;
          }
      }else{//no command was recognized, but we have to figure if it's a good answer 
          if(isRunning && channelID == currentChan){
              /*
             WHITE HEAVY CHECK MARK => 9989 => 
             NEGATIVE SQUARED CROSS MARK => 10062
+            OK HAND SIGN => \uD83D\uDC4C.
             */
                 distance = levenshtein(message.toLowerCase(), currentFile[1].replace(/_/g," ").replace(".txt","").replace(".mp3","").toLowerCase());
                 if(distance <= 3){//close enough from the original string (maybe be tweaked later)
