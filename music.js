@@ -581,6 +581,12 @@ bot.on('message', function (user, userID, channelID, message, evt) {
             /*case 'play-from-yt':
                 playFromYT({url:args[0]}, bot, channelID);
             break;*/
+            case 'code':
+                    bot.sendMessage({
+                        to: channelID,
+                        message: "Mon code se trouve ici : https://github.com/aDotDotDot/music-bot"
+                    });
+            break;
          }
      }else{//no command was recognized, but we have to figure if it's a good answer 
          if(isRunning && channelID == currentChan){
